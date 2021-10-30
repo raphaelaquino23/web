@@ -2228,7 +2228,10 @@ Object.defineProperty(exports, "__esModule", {
 
 var axios_1 = __importDefault(require("axios"));
 
-axios_1.default.post('http://localhost:3000/users');
+axios_1.default.post('http://localhost:3000/users', {
+  name: 'myname',
+  age: 20
+});
 },{"axios":"node_modules/axios/index.js"}],"../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
