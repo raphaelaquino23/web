@@ -39,10 +39,21 @@ export class User {
   }
 
   fetch(): void {
+    const id = this.get('id');
     axios
-      .get(`http://localhost:3000/users/${this.get("id")}`)
+      .get(`http://localhost:3000/users/${id}`)
       .then((response: AxiosResponse): void => {
         this.set(response.data);
       });
+  }
+
+  save(): void {
+    const id = this.get('id');
+    //put 
+    if(id){
+      axios.put(`http://localhost:3000/users/${id}`);
+    } else {
+      axios.post('http://localhost:3000/users', this.data);
+    }
   }
 }
