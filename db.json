@@ -7,6 +7,11 @@
       "name": "New Name",
       "age": 9999,
       "id": 2
+    },
+    {
+      "name": "New Record",
+      "age": 9999,
+      "id": 3
     }
   ]
 }
