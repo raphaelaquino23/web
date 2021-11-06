@@ -127,14 +127,16 @@ exports.Eventing = void 0;
 
 var Eventing = function () {
   function Eventing() {
-    this.events = {};
-  }
+    var _this = this;
 
-  Eventing.prototype.on = function (eventName, callback) {
-    var handlers = this.events[eventName] || [];
-    handlers.push(callback);
-    this.events[eventName] = handlers;
-  };
+    this.events = {}; // using arrow operator makes performance take a hit. 
+
+    this.on = function (eventName, callback) {
+      var handlers = _this.events[eventName] || [];
+      handlers.push(callback);
+      _this.events[eventName] = handlers;
+    };
+  }
 
   Eventing.prototype.trigger = function (eventName) {
     var handlers = this.events[eventName];
@@ -2287,7 +2289,59 @@ var Sync = function () {
 }();
 
 exports.Sync = Sync;
-},{"axios":"node_modules/axios/index.js"}],"src/models/User.ts":[function(require,module,exports) {
+},{"axios":"node_modules/axios/index.js"}],"src/models/Attributes.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Attributes = void 0;
+
+var Attributes = function () {
+  function Attributes(data) {
+    var _this = this;
+
+    this.data = data; //generic constraint <K extends keyof T> limits types T can be
+    //K can be only 1 of the types of T (name, age or id in this case)
+    //We are getting the types of T as strings (name, age or id)
+    //and returns the corresponding type
+    // arrow operator to ensure the attributes is bound to this rather than to the function.
+
+    this.get = function (key) {
+      return _this.data[key];
+    };
+  }
+
+  Attributes.prototype.set = function (update) {
+    Object.assign(this.data, update);
+  };
+
+  Attributes.prototype.getAll = function () {
+    return this.data;
+  };
+
+  return Attributes;
+}();
+
+exports.Attributes = Attributes;
+var attrs = new Attributes({
+  id: 5,
+  age: 20,
+  name: "asdf"
+});
+var name = attrs.get("name");
+var age = attrs.get("age");
+var id = attrs.get("id"); // We can declare a type in order to define a function
+// that only runs after a specific type
+// type Name = 'Test';
+//
+// const printName = (name: Name) : void => {}
+//
+// the above will not call unless it is of type Name;
+//
+// printName('Test') // will work
+// printName('colors') // will not work
+},{}],"src/models/User.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2299,26 +2353,73 @@ var Eventing_1 = require("./Eventing");
 
 var Sync_1 = require("./Sync");
 
+var Attributes_1 = require("./Attributes");
+
+var rootUrl = "http://localhost:3000/users";
+
 var User = function () {
-  function User(data) {
-    this.data = data;
+  function User(attrs) {
     this.events = new Eventing_1.Eventing();
-    this.sync = new Sync_1.Sync();
+    this.sync = new Sync_1.Sync(rootUrl);
+    this.attributes = new Attributes_1.Attributes(attrs);
   }
 
-  User.prototype.get = function (propName) {
-    return this.data[propName];
-  };
+  Object.defineProperty(User.prototype, "on", {
+    get: function get() {
+      return this.events.on;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(User.prototype, "trigger", {
+    get: function get() {
+      return this.events.trigger;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(User.prototype, "get", {
+    get: function get() {
+      return this.attributes.get;
+    },
+    enumerable: false,
+    configurable: true
+  });
 
   User.prototype.set = function (update) {
-    Object.assign(this.data, update);
+    this.attributes.set(update);
+    this.events.trigger("change");
+  };
+
+  User.prototype.fetch = function () {
+    var _this = this;
+
+    var id = this.attributes.get("id");
+
+    if (typeof id !== "number") {
+      throw new Error("cannot fetch without an id");
+    }
+
+    this.sync.fetch(id).then(function (response) {
+      _this.set(response.data);
+    });
+  };
+
+  User.prototype.save = function () {
+    var _this = this;
+
+    this.sync.save(this.attributes.getAll()).then(function (response) {
+      _this.trigger("save");
+    }).catch(function () {
+      _this.trigger("error");
+    });
   };
 
   return User;
 }();
 
 exports.User = User;
-},{"./Eventing":"src/models/Eventing.ts","./Sync":"src/models/Sync.ts"}],"src/index.ts":[function(require,module,exports) {
+},{"./Eventing":"src/models/Eventing.ts","./Sync":"src/models/Sync.ts","./Attributes":"src/models/Attributes.ts"}],"src/index.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2328,13 +2429,31 @@ Object.defineProperty(exports, "__esModule", {
 var User_1 = require("./models/User");
 
 var user = new User_1.User({
-  name: 'trigger user ',
+  name: 'new user 2',
   age: 0
 });
-user.events.on('change', function () {
-  console.log('change!');
+
+var Person = function () {
+  function Person(firstName, lastName) {
+    this.firstName = firstName;
+    this.lastName = lastName;
+  }
+
+  Object.defineProperty(Person.prototype, "fullName", {
+    get: function get() {
+      return this.firstName + " " + this.lastName;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  return Person;
+}();
+
+console.log(user.get('name'));
+user.on('change', function () {
+  console.log('User was changed');
 });
-user.events.trigger('change');
+user.save();
 },{"./models/User":"src/models/User.ts"}],"../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -2363,7 +2482,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "14284" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "19596" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

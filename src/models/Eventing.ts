@@ -3,7 +3,8 @@ type Callback = () => void;
 export class Eventing {
   events: { [key: string]: Callback[] } = {};
 
-  on(eventName: string, callback: Callback): void {
+  // using arrow operator makes performance take a hit. 
+  on = (eventName: string, callback: Callback): void => {
     const handlers = this.events[eventName] || [];
     handlers.push(callback);
     this.events[eventName] = handlers;

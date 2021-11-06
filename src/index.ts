@@ -1,9 +1,19 @@
 import { User } from './models/User';
 
-const user = new User({ name: 'trigger user ', age: 0});
+const user = new User({ name: 'new user 2', age: 0});
 
-user.events.on('change', () =>{
-    console.log('change!');
+class Person {
+    constructor ( public firstName: string, public lastName: string){}
+
+    get fullName(): string {
+        return `${this.firstName} ${this.lastName}`
+    }
+}
+
+console.log(user.get('name'));
+
+user.on('change', () => {
+    console.log('User was changed')
 })
 
-user.events.trigger('change');
+user.save();
