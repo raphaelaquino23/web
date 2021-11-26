@@ -9,11 +9,16 @@ export abstract class View<T extends Model<K>, K> {
         this.bindModel();
     };
 
+
+    abstract template(): string;
+
+    regionsMap(): { [key: string]: string } {
+        return{};
+    }
+
     eventsMap(): { [key: string]: () => void}{
         return {};
     }
-    abstract template(): string;
-
 
     bindModel(): void {
         this.model.on('change', () => {
@@ -41,7 +46,7 @@ export abstract class View<T extends Model<K>, K> {
             const selector = regionsMap[key];
             const element = fragment.querySelector(selector);
             if(element){
-                this.regions[key] = fragment.querySelector(selector);
+                this.regions[key] = element;
             }
         }
     }
