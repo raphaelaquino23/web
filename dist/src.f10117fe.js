@@ -129,10 +129,15 @@ var View = function () {
   function View(parent, model) {
     this.parent = parent;
     this.model = model;
+    this.regions = {};
     this.bindModel();
   }
 
   ;
+
+  View.prototype.eventsMap = function () {
+    return {};
+  };
 
   View.prototype.bindModel = function () {
     var _this = this;
@@ -166,11 +171,14 @@ var View = function () {
 
   ;
 
+  View.prototype.mapRegions = function (fragment) {};
+
   View.prototype.render = function () {
     this.parent.innerHTML = '';
     var templateElement = document.createElement('template');
     templateElement.innerHTML = this.template();
     this.bindEvents(templateElement.content);
+    this.mapRegions(templateElement.content);
     this.parent.append(templateElement.content);
   };
 
